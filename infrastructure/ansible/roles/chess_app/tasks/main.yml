@@ -37,6 +37,12 @@
     group: "{{ app_user }}"
     recurse: true
 
+- name: Drop and recreate database for clean migration
+  ansible.builtin.shell: >
+    mysql -u root -p'{{ vault_mysql_root_password }}'
+    -e "DROP DATABASE IF EXISTS {{ mysql_db_name }}; CREATE DATABASE {{ mysql_db_name }};"
+  no_log: true
+
 - name: Restore dotnet local tools
   ansible.builtin.command:
     cmd: "{{ dotnet_dir }}/dotnet tool restore"
