@@ -149,7 +149,7 @@ function Play() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${apiUrl}/api/chess` + gameID + "/move", {
+      const response = await fetch(`${apiUrl}/api/chess/${gameID}/move`, {
         method: "POST",
         body: JSON.stringify({
           move: userMove.toLowerCase(),
