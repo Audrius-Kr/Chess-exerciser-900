@@ -23,9 +23,6 @@ namespace backend.Data
             // User configuration
             modelBuilder.Entity<User>(entity =>
             {
-                entity.Property(u => u.ProfileLifespan)
-                    .HasDefaultValueSql("NOW()");
-
                 entity.HasOne(u => u.UserStats)
                     .WithOne(us => us.User)
                     .HasForeignKey<UserStats>(us => us.UserId);

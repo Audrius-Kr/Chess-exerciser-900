@@ -263,9 +263,7 @@ namespace backend.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("ProfileLifespan")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("NOW()");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");

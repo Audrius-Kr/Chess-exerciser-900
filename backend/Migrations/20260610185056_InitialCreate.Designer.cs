@@ -11,7 +11,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ChessDbContext))]
-    [Migration("20260610173051_InitialCreate")]
+    [Migration("20260610185056_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -266,9 +266,7 @@ namespace backend.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("ProfileLifespan")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasDefaultValueSql("NOW()");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
