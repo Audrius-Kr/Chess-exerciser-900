@@ -26,4 +26,4 @@ yarn-error.log*
 /backend/Migrations/
 /backend/obj/
 **/obj/
-.vs/
+.vs/backend/stockfish12.exe
