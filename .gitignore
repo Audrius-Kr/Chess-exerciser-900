@@ -31,3 +31,4 @@ backend/stockfish12.exe
 infrastructure/.terraform/
 infrastructure/nb-key-pair.pem
 infrastructure/*.pem
+CLAUDE.md
