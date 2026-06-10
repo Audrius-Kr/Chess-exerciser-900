@@ -35,22 +35,14 @@ builder.Services.AddCors(options =>
 // Read the Stockfish path from configuration (appsettings.json or environment variable)
 string stockfishPath = builder.Configuration["StockfishPath"] ?? "stockfish12.exe";
 
-// Register the IStockfish (Stockfish instance) as Singleton so that it's shared throughout the application
-builder.Services.AddScoped<Stockfish.NET.Stockfish>(provider =>
+// Register IStockfishService as Scoped — one Stockfish process per request
+builder.Services.AddScoped<IStockfishService>(provider =>
 {
     if (string.IsNullOrEmpty(stockfishPath))
     {
         throw new InvalidOperationException("Stockfish path is not configured.");
     }
-
-    return new Stockfish.NET.Stockfish(stockfishPath); // Stockfish is a static-like service
-});
-
-// Register IStockfishService (StockfishService) as Scoped so it's injected with a fresh instance per request
-builder.Services.AddScoped<IStockfishService>(provider =>
-{
-    var stockfish = provider.GetRequiredService<Stockfish.NET.Stockfish>(); // Get the singleton instance of Stockfish
-    return new StockfishService(stockfish); // Pass the singleton Stockfish to the StockfishService
+    return new StockfishService(stockfishPath);
 });
 
 var connectionString = builder.Configuration.GetConnectionString("ChessPortal");
