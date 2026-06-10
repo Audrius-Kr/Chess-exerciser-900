@@ -52,25 +52,47 @@ namespace CHESSPROJ.Services
 
         public bool IsMoveCorrect(string currentPosition, string move)
         {
-            // Set position WITHOUT the candidate move, then run perft 1
-            // perft at depth 1 lists all legal moves from current position
+            // Set up the position WITHOUT the candidate move
             if (string.IsNullOrWhiteSpace(currentPosition))
                 SendCommand("position startpos");
             else
                 SendCommand($"position startpos moves {currentPosition}");
 
             SendCommand("go perft 1");
-            var output = ReadUntil("Nodes searched");
-            var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-            // perft output: each line is "<move>: <count>"
-            foreach (var line in lines)
+            // Read perft output line-by-line — legal moves appear as "move: count"
+            bool found = false;
+            var deadline = DateTime.UtcNow.AddSeconds(5);
+            lock (_lock)
             {
-                var parts = line.Trim().Split(':');
-                if (parts.Length >= 1 && parts[0].Trim().Equals(move, StringComparison.OrdinalIgnoreCase))
-                    return true;
+                string? line;
+                while (DateTime.UtcNow < deadline && (line = _process.StandardOutput.ReadLine()) != null)
+                {
+                    var trimmed = line.Trim();
+                    // Skip info/debug lines
+                    if (trimmed.Length == 0 || trimmed.StartsWith("info") || trimmed.StartsWith("Nodes"))
+                        continue;
+
+                    // Perft move line: "a2a3: 1" — check if it matches
+                    var colonIdx = trimmed.IndexOf(':');
+                    if (colonIdx > 0)
+                    {
+                        var legalMove = trimmed.Substring(0, colonIdx).Trim();
+                        if (legalMove.Equals(move, StringComparison.OrdinalIgnoreCase))
+                        {
+                            found = true;
+                            // Drain remaining output to keep stream clean
+                            while (DateTime.UtcNow < deadline && (line = _process.StandardOutput.ReadLine()) != null)
+                            {
+                                if (line.Contains("Nodes searched"))
+                                    return true;
+                            }
+                            return true;
+                        }
+                    }
+                }
             }
-            return false;
+            return found;
         }
 
         public string GetFen()
