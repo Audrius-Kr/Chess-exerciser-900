@@ -20,15 +20,20 @@ using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS policy
+// Add CORS policy — origins from config, semicolon-separated
+var corsOrigins = (builder.Configuration["Cors:Origins"] ?? "")
+    .Split(';', StringSplitOptions.RemoveEmptyEntries);
+if (corsOrigins.Length == 0)
+    corsOrigins = new[] { "http://localhost:3000" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowStaticWebApp",
-        builder =>
+        policy =>
         {
-            builder.WithOrigins("brave-river-0952dfb10-67.centralus.4.azurestaticapps.net")   // Allow all origins
-                   .AllowAnyMethod()   // Allow all HTTP methods (GET, POST, etc.)
-                   .AllowAnyHeader();  // Allow any headers
+            policy.WithOrigins(corsOrigins)
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
         });
 });
 

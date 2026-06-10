@@ -14,6 +14,12 @@
     depth: 1
     force: true
 
+- name: Stop chess-exerciser before publish (avoids file locks)
+  ansible.builtin.systemd:
+    name: chess-exerciser
+    state: stopped
+  failed_when: false
+
 - name: Publish .NET application
   ansible.builtin.command:
     cmd: "{{ dotnet_dir }}/dotnet publish backend/ -c Release -o {{ app_dir }}"
@@ -73,7 +79,6 @@
     src: nginx-chess.conf.j2
     dest: /etc/nginx/conf.d/chess.conf
     mode: "0644"
-  notify: Reload nginx
 
 - name: Enable and start chess-exerciser
   ansible.builtin.systemd:
@@ -82,8 +87,24 @@
     enabled: true
     state: started
 
-- name: Enable and start nginx
+- name: Remove default nginx site (conflicts with our config)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/nginx/sites-enabled/default
+    - /etc/nginx/conf.d/default.conf
+    - /etc/nginx/sites-available/default
+  failed_when: false
+
+- name: Validate nginx configuration
+  ansible.builtin.command: nginx -t
+  register: _nginx_test
+  changed_when: false
+
+- name: Enable and restart nginx
   ansible.builtin.systemd:
     name: nginx
     enabled: true
-    state: started
+    state: restarted
+  when: _nginx_test.rc == 0
