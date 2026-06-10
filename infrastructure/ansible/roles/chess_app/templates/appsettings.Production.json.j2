@@ -1,0 +1,18 @@
+{
+  "StockfishPath": "/usr/local/bin/stockfish",
+  "ConnectionStrings": {
+    "ChessPortal": "server=localhost;port=3306;database={{ mysql_db_name }};uid={{ mysql_app_user }};pwd={{ vault_mysql_app_password }};"
+  },
+  "Jwt": {
+    "Key": "{{ vault_jwt_key }}",
+    "Issuer": "ChessExerciser900",
+    "Audience": "ARE_YOU_NOT_ENTERTAINED"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}

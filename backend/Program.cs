@@ -53,7 +53,9 @@ builder.Services.AddScoped<IStockfishService>(provider =>
     return new StockfishService(stockfish); // Pass the singleton Stockfish to the StockfishService
 });
 
-builder.Services.AddDbContext<ChessDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ChessPortal")));
+var connectionString = builder.Configuration.GetConnectionString("ChessPortal");
+builder.Services.AddDbContext<ChessDbContext>(options =>
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 0))));
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
