@@ -4,19 +4,18 @@ A memory-training chess game where you play against a Stockfish bot while the bo
 
 ## Stack
 
-- **Backend:** ASP.NET Core 7 (C#), Entity Framework Core, SQL Server, JWT auth, Stockfish engine
-- **Frontend:** React 18 (Create React App), React Router, React-Bootstrap, axios
+- **Backend:** ASP.NET Core 7 (C#), Entity Framework Core, MySQL 8.0, JWT auth, Stockfish engine
+- **Frontend:** React 18 (Create React App), React Router, React-Bootstrap
 - **Tests:** xUnit, Moq, FluentAssertions
-- **Hosting:** Azure (Web App + Static Web App) or self-hosted on AWS EC2 with Ansible
-- **Database:** SQL Server (Azure) or MySQL 8.0 (self-hosted)
+- **Hosting:** AWS EC2 (`t4g.small`, ARM64, Ubuntu 24.04)
+- **Database:** MySQL 8.0 — runs on the same EC2 instance
 
 ## Deployment
 
-### Self-hosted (AWS EC2 + Ansible)
+Everything is deployed to a single EC2 instance using Terraform + Ansible.
 
-Deploys the full stack to a single EC2 instance (`t4g.small`, ARM64, Ubuntu 24.04):
+Terraform provisions the EC2 instance, VPC, and security group. Ansible installs and configures everything via 6 roles:
 
-**Ansible structure:**
 ```
 infrastructure/ansible/
 ├── site.yml              # top-level playbook
@@ -25,11 +24,11 @@ infrastructure/ansible/
 │   ├── vars.yml          # non-sensitive config
 │   └── vault.yml         # encrypted secrets (Ansible Vault)
 └── roles/
-    ├── common/           # system deps (apt, nginx, git)
-    ├── mysql/            # MySQL 8.0 setup
+    ├── common/           # system deps (apt, nginx, git, g++)
+    ├── mysql/            # MySQL 8.0 — database + app user
     ├── dotnet/           # .NET 7 SDK install
     ├── stockfish/        # build Stockfish 17 from source (ARM64)
-    ├── chess_app/        # build, publish, systemd service, nginx proxy
+    ├── chess_app/        # build, publish, systemd service, nginx API proxy
     └── frontend/         # Node.js 20, npm build, serve via nginx
 ```
 
