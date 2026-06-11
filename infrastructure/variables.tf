@@ -27,3 +27,15 @@ variable "public_subnet_cidr" {
   type        = string
   default     = "10.0.0.0/24"
 }
+
+variable "domain_name" {
+  description = "name of custom domain"
+  type        = string
+  default     = "chess-exerciser.tech"
+}
+
+variable "public_subnet2_cidr" {
+  description = "cidr of the local subnet"
+  type        = string
+  default     = "10.0.1.0/24"
+}

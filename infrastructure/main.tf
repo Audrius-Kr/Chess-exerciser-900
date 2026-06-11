@@ -97,6 +97,12 @@ resource "aws_security_group" "allow_ssh" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port   = 0
     to_port     = 0
@@ -111,4 +117,91 @@ resource "aws_security_group" "allow_ssh" {
 resource "local_file" "ansible_hosts" {
   content  = "[webservers]\n${aws_instance.demo-instance.public_ip}\n"
   filename = "${path.root}/ansible/ansible_hosts"
+}
+
+resource "aws_lb_target_group" "single_instance_tg" {
+  name     = "single-instance-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main_vpc.id
+}
+
+resource "aws_lb_target_group_attachment" "single_instance_tg_attachment" {
+  target_group_arn = aws_lb_target_group.single_instance_tg.arn
+  target_id        = aws_instance.demo-instance.id
+  port             = 80
+}
+
+resource "aws_lb" "main_alb" {
+  depends_on         = [aws_subnet.public_subnet, aws_subnet.public_subnet2]
+  name               = "main-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.allow_ssh.id]
+  subnets            = [aws_subnet.public_subnet.id, aws_subnet.public_subnet2.id]
+}
+
+resource "aws_lb_listener" "main_lb_listener" {
+  load_balancer_arn = aws_lb.main_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.single_instance_tg.arn
+  }
+}
+
+resource "aws_lb_listener" "https_lb_listener" {
+  load_balancer_arn = aws_lb.main_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate.chess_acm_cert.arn
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.single_instance_tg.arn
+  }
+}
+
+resource "aws_route53_zone" "chess_route53_zone" {
+  name = var.domain_name
+}
+
+resource "aws_acm_certificate" "chess_acm_cert" {
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_subnet" "public_subnet2" {
+  vpc_id                  = aws_vpc.main_vpc.id
+  cidr_block              = var.public_subnet2_cidr
+  availability_zone       = "eu-west-1b"
+  map_public_ip_on_launch = true
+}
+
+resource "aws_route53_record" "chess_validation_record" {
+  zone_id = aws_route53_zone.chess_route53_zone.id
+  name    = tolist(aws_acm_certificate.chess_acm_cert.domain_validation_options)[0].resource_record_name
+  type    = tolist(aws_acm_certificate.chess_acm_cert.domain_validation_options)[0].resource_record_type
+  records = [tolist(aws_acm_certificate.chess_acm_cert.domain_validation_options)[0].resource_record_value]
+  ttl     = 60
+}
+
+resource "aws_acm_certificate_validation" "certificate_validation" {
+  certificate_arn         = aws_acm_certificate.chess_acm_cert.arn
+  validation_record_fqdns = [aws_route53_record.chess_validation_record.fqdn]
+}
+
+resource "aws_route53_record" "alb_alias_record" {
+  zone_id = aws_route53_zone.chess_route53_zone.id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.main_alb.dns_name
+    zone_id                = aws_lb.main_alb.zone_id
+    evaluate_target_health = true
+  }
 }
