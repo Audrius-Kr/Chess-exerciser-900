@@ -1,6 +1,11 @@
 # Chess-exerciser-900
 
 A memory-training chess game where you play against a Stockfish bot while the board periodically blacks out, forcing you to remember the position.
+
+**[Play now →](https://chess-exerciser.tech)**
+
+Deployed to a single AWS EC2 instance using Terraform for infrastructure and Ansible for configuration — one `ansible-playbook` command provisions the full stack from bare metal.
+
 ![alt text](https://github.com/Audrius-Kr/Chess-exerciser-900/blob/main/Documentation/images/play_screen.png "Play Screen #1")
 ## Stack
 
