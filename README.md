@@ -1,7 +1,7 @@
 # Chess-exerciser-900
 
 A memory-training chess game where you play against a Stockfish bot while the board periodically blacks out, forcing you to remember the position.
-
+![alt text](https://github.com/audrius-kr/chess-exerciser-900/documentation/images/play_screen.png "Play Screen #1")
 ## Stack
 
 - **Backend:** ASP.NET Core 7 (C#), Entity Framework Core, MySQL 8.0, JWT auth, Stockfish engine
