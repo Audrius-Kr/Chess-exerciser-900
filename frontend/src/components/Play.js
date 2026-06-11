@@ -233,7 +233,7 @@ function Play() {
           setHealth={setHealth}
         />
         <div className="container">
-          <Board fen={fen} turnBlack={turnBlack} />
+          <Board fen={fen} turnBlack={turnBlack} onMove={postMove} />
           <div>
             <GameControls
               move={move}
